@@ -1,26 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-sage: #c7cab9;
+  --color-sage-light: #dde0d4;
+  --color-sage-dark: #9a9d8c;
+
+  --color-gold: #dcbe88;
+  --color-gold-light: #ecdbb8;
+  --color-gold-dark: #b8985f;
+
+  --color-bg: #f7f7f4;
+  --color-ink: #111111;
+  --color-muted: #70706b;
+  --color-line: #e4e4df;
+
+  --color-accent: #f3b51b;
+  --color-accent-dark: #c88d00;
+  --color-soft: #efefeb;
+
+  --color-blue: #dfeaf5;
+  --color-blue-ink: #46627b;
+
+  --color-orange: #f5e7d7;
+  --color-orange-ink: #9b673b;
+
+  --color-red: #f2dfdf;
+  --color-red-ink: #985959;
+
+  --color-purple: #e8e2f1;
+  --color-purple-ink: #6d5b82;
+
+  --color-green: #dfeadf;
+  --color-green-ink: #557255;
+
+  --color-teal: #dceaea;
+  --color-teal-ink: #4f7070;
+
+  --font-sans: 'Figtree', 'Roboto', Arial, Helvetica, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* =========================================================
+   BASE
+   ========================================================= */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* =========================================================
+   LENIS
+   ========================================================= */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+html.lenis {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* =========================================================
+   PERFORMANCE
+   ========================================================= */
+
+canvas {
+  display: block;
 }

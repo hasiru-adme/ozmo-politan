@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum ProjectStatus {
+  DISCOVERY
+  DESIGN
+  DEVELOPMENT
+  TESTING
+  LAUNCHED
+  COMPLETED
+}
+
+// Firebase handles actual auth (password, sessions).
+// This table mirrors the Firebase user + adds our app-specific role/data.
+model User {
+  id         String   @id @default(cuid())
+  firebaseUid String  @unique          // Firebase Auth UID
+  email      String   @unique
+  name       String?
+  phone      String?
+  role       Role     @default(CLIENT)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Client-only relations
+  projects   Project[]
+  payments   Payment[]
+  documentsUploaded Document[]
+  ticketsAsClient   SupportTicket[] @relation("ClientTickets")
+  ticketMessages    TicketMessage[] @relation("MessageAuthor")
+  notifications     Notification[]
+
+  @@index([firebaseUid])
+}
+
+model Project {
+  id            String        @id @default(cuid())
+  clientId      String
+  client        User          @relation(fields: [clientId], references: [id])
+
+  name          String
+  description   String?
+  status        ProjectStatus @default(DISCOVERY)
+
+  startDate     DateTime?
+  expectedLaunch DateTime?
+  launchedAt    DateTime?
+
+  paymentPlan   PaymentPlan?
+
+  totalValue    Decimal       @db.Decimal(10, 2)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  milestones    ProjectMilestone[]
+  documents     Document[]
+  tickets       SupportTicket[]
+  @@index([clientId])
+}
+
+model ProjectMilestone {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title      String
+  order      Int
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?          // user.id who did the action (null = system)
+  action    String           // "PROJECT_CREATED", "STATUS_CHANGED", etc.
+  targetType String?         // "Project", "User", "Payment"...
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+enum PaymentPlanType {
+  FULL
+  INSTALLMENTS
+}
+
+enum InstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model PaymentPlan {
+  id            String            @id @default(cuid())
+  projectId     String            @unique
+  project       Project           @relation(fields: [projectId], references: [id])
+
+  type          PaymentPlanType
+  totalAmount   Decimal           @db.Decimal(10, 2)
+  numberOfMonths Int              @default(1)   // 1 = pay in full
+
+  createdAt     DateTime          @default(now())
+
+  installments  PaymentInstallment[]
+
+  @@index([projectId])
+}
+
+model PaymentInstallment {
+  id             String            @id @default(cuid())
+  planId         String
+  plan           PaymentPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  installmentNumber Int
+  amount         Decimal           @db.Decimal(10, 2)
+  currency       String            @default("USD")
+  dueDate        DateTime
+  paidAt         DateTime?
+  status         InstallmentStatus @default(PENDING)
+
+  payments       Payment[]
+
+  createdAt      DateTime          @default(now())
+
+  @@index([planId])
+  @@index([status])
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  installmentId      String?
+  installment        PaymentInstallment? @relation(fields: [installmentId], references: [id])
+
+  clientId           String
+  client             User          @relation(fields: [clientId], references: [id])
+
+  projectId          String
+  amount             Decimal       @db.Decimal(10, 2)
+  currency           String        @default("USD")
+
+  provider           String        @default("paypal")
+  providerOrderId    String?       @unique   // PayPal order ID
+  providerCaptureId  String?       @unique   // PayPal capture ID (after payment completes)
+
+  status             PaymentStatus @default(PENDING)
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([clientId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String   @default("paypal")
+  eventId     String   @unique   // PayPal's event ID — prevents double-processing
+  eventType   String
+  payload     Json
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  MILESTONE_COMPLETED
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  TICKET_CREATED
+  TICKET_REPLY
+  DOCUMENT_UPLOADED
+  PROJECT_STATUS_CHANGED
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  uploadedById String
+  uploadedBy   User    @relation(fields: [uploadedById], references: [id])
+
+  fileName    String
+  fileUrl     String        // Firebase Storage download URL
+  storagePath String        // Firebase Storage path (for deletion)
+  fileSize    Int           // bytes
+  mimeType    String
+
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  projectId   String
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  clientId    String
+  client      User           @relation("ClientTickets", fields: [clientId], references: [id])
+
+  subject     String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  messages    TicketMessage[]
+
+  @@index([projectId])
+  @@index([clientId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId    String
+  author      User          @relation("MessageAuthor", fields: [authorId], references: [id])
+
+  body        String
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+model Notification {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?           // e.g. "/dashboard/tickets/xyz"
+  read      Boolean           @default(false)
+
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([userId, read])
+}
+
+enum ContactStatus {
+  NEW
+  CONTACTED
+  ARCHIVED
+}
+
+model ContactSubmission {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  status    ContactStatus @default(NEW)
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime      @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}

@@ -1,0 +1,536 @@
+/* Hero.module.css
+   All selectors are scoped to this component by CSS Modules.
+   The old :root / html / body rules now live on .root (see globals notes). */
+
+.root {
+  --bg: #050505;
+  --bg-2: #0a0a0c;
+  --blue: #0050ff;
+  --cyan: #00d6ff;
+  --text-head: rgba(255, 255, 255, 0.9);
+  --text-body: rgba(255, 255, 255, 0.6);
+  --font: var(--font-inter), "Inter", "SF Pro Display", "SF Pro Text", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  position: relative;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* "clip" (not "hidden") so position: sticky keeps working */
+  overflow-x: clip;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+.root a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------- NAV ---------- */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: 52px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 clamp(16px, 3vw, 40px);
+  background: rgba(5, 5, 5, 0);
+  border-bottom: 1px solid rgba(255, 255, 255, 0);
+  transition: background 0.5s ease, border-color 0.5s ease;
+}
+
+/* solid-ish (no live backdrop blur: blurring a canvas that changes every frame makes scrolling laggy) */
+.nav.scrolled {
+  background: rgba(5, 5, 5, 0.82);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.logo {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--text-head);
+}
+
+.navList {
+  display: flex;
+  gap: clamp(16px, 2.6vw, 36px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navList a {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  position: relative;
+  padding: 4px 0;
+  transition: color 0.25s ease;
+}
+
+.navList a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.navList a:hover {
+  color: #fff;
+}
+
+.navList a:hover::after {
+  transform: scaleX(1);
+}
+
+.ctaWrap {
+  justify-self: end;
+}
+
+.btnOutline {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: linear-gradient(#050505, #050505) padding-box,
+    linear-gradient(90deg, var(--blue), var(--cyan)) border-box;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  transition: box-shadow 0.3s ease;
+}
+
+.btnOutline:hover {
+  box-shadow: 0 0 22px rgba(0, 214, 255, 0.35);
+}
+
+/* ---------- LOADER ---------- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #050505;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+  text-align: center;
+  padding: 24px;
+}
+
+.loader.done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loaderBar {
+  width: min(260px, 60vw);
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loaderBar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  transition: width 0.15s linear;
+}
+
+.loaderText {
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.loaderErr {
+  max-width: 480px;
+  color: #ff9a9a;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.loaderErr code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+}
+
+/* ---------- STORY (pinned canvas) ---------- */
+.story {
+  position: relative;
+  height: 600vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Layer 0: soft, full-bleed copy of the current frame (tiny canvas scaled up = free blur) */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Layer 1: extremely subtle alignment grid */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 96px 96px;
+}
+
+/* Layer 2: the sharp frame. Edge feathering is drawn inside the canvas */
+.seq {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  transform: translateZ(0);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.seq.ready {
+  opacity: 1;
+}
+
+/* ---------- BEATS (text overlays) ---------- */
+.beat {
+  position: absolute;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.beat.on {
+  pointer-events: auto;
+}
+
+.beat h1,
+.beat h2 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  color: var(--text-head);
+  background: linear-gradient(180deg, #fff 55%, rgba(0, 214, 255, 0.9) 135%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.beat h1 {
+  font-size: clamp(44px, 8vw, 116px);
+  letter-spacing: -0.045em;
+}
+
+.beat h2 {
+  font-size: clamp(32px, 4.6vw, 68px);
+}
+
+.beat p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: clamp(16px, 1.25vw, 18px);
+  max-width: 44ch;
+}
+
+.beat .lead {
+  margin-top: 18px;
+  font-size: clamp(18px, 1.8vw, 26px);
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.beatHero {
+  top: 15vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.beatHero p.sub {
+  margin: 14px auto 0;
+  max-width: 52ch;
+}
+
+.beatLeft,
+.beatRight {
+  top: 50%;
+  margin-top: -170px;
+  width: min(440px, 38vw);
+}
+
+.beatLeft {
+  left: clamp(24px, 7vw, 120px);
+  text-align: left;
+}
+
+.beatRight {
+  right: clamp(24px, 7vw, 120px);
+  text-align: right;
+}
+
+.beatRight p,
+.beatRight .points {
+  margin-left: auto;
+}
+
+.beatLeft::before,
+.beatRight::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -60px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(5, 5, 5, 0.72), transparent);
+}
+
+.beat p + p {
+  margin-top: 12px;
+}
+
+.beat h2 + p {
+  margin-top: 20px;
+}
+
+.points {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  max-width: 40ch;
+}
+
+.points li {
+  color: var(--text-body);
+  font-size: clamp(15px, 1.2vw, 17px);
+}
+
+.beatRight .points li {
+  padding-right: 14px;
+  border-right: 2px solid;
+  border-image: linear-gradient(180deg, var(--blue), var(--cyan)) 1;
+}
+
+.beatCta {
+  left: 0;
+  right: 0;
+  bottom: 9vh;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.beatCta::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: -8vh;
+  width: min(900px, 100vw);
+  height: 60vh;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(5, 8, 21, 0.9), transparent);
+  pointer-events: none;
+}
+
+.beatCta p.sub {
+  margin: 14px auto 0;
+}
+
+.ctaRow {
+  margin-top: 28px;
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  padding: 14px 30px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  box-shadow: 0 8px 32px rgba(0, 80, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 44px rgba(0, 214, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.linkSec {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding-bottom: 2px;
+  transition: color 0.25s, border-color 0.25s;
+}
+
+.linkSec:hover {
+  color: #fff;
+  border-color: var(--cyan);
+}
+
+.beat p.micro {
+  margin: 22px auto 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* scroll hint + progress */
+.scrollHint {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.4s ease;
+}
+
+.scrollHint i {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent);
+  animation: drip 2s ease-in-out infinite;
+  transform-origin: top;
+}
+
+@keyframes drip {
+  0% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+.progress {
+  position: absolute;
+  z-index: 5;
+  right: clamp(12px, 2vw, 28px);
+  top: 50%;
+  height: 120px;
+  margin-top: -60px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress i {
+  display: block;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(180deg, var(--blue), var(--cyan));
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 820px) {
+  .nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .navList {
+    display: none;
+  }
+
+  .beatLeft,
+  .beatRight {
+    top: auto;
+    bottom: 8vh;
+    margin-top: 0;
+    left: 24px;
+    right: 24px;
+    width: auto;
+    text-align: left;
+  }
+
+  .beatRight p,
+  .beatRight .points {
+    margin-left: 0;
+  }
+
+  .beatRight .points li {
+    padding-right: 0;
+    padding-left: 14px;
+    border-right: 0;
+    border-left: 2px solid var(--blue);
+    border-image: none;
+  }
+
+  .beatHero {
+    top: 12vh;
+  }
+
+  .progress {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollHint i {
+    animation: none;
+  }
+}
