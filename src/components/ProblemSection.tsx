@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Users,
   Mail,
@@ -118,20 +118,8 @@ function AnimatedWords({
       {words.map((word, index) => (
         <motion.span
           key={`${word}-${index}`}
-          initial={{
-            opacity: 0,
-            y: 30,
-            filter: "blur(8px)",
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-          }}
-          viewport={{
-            once: false,
-            amount: 0.5,
-          }}
+          initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{
             duration: 0.55,
             delay: delay + index * 0.055,
@@ -147,55 +135,47 @@ function AnimatedWords({
 }
 
 export default function ProblemSection() {
+   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const frameSrc = (i: number) =>
+    isMobile
+      ? `/frames-problem/mobile/frame_${String(i).padStart(3, "0")}.webp`
+      : `/frames-problem/frame_${String(i).padStart(4, "0")}.webp`;
   return (
     // overflow-clip (not overflow-hidden) so the sticky pin inside works
     <section id="problem" className="relative overflow-clip bg-white">
       {/* ───────────── PINNED PART: frames play while this stays on screen ───────────── */}
-     <ScrollFrames
+ {isMobile !== null && (
+      <ScrollFrames
+  key={isMobile ? "mobile" : "desktop"}
   frameCount={100}
-  src={(i) =>
-    `/frames-problem/frame_${String(i).padStart(4, "0")}.webp`
-  }
+  src={frameSrc}
+  fadeOutOnScroll
+  fadeOutEnd={0.015}
   overlayClassName="bg-transparent"
   scrollLength={250}
   smoothness={0.08}
   contentClassName="px-5 pt-24 sm:px-[5vw] sm:pt-28 md:px-[6vw] md:pt-32"
 >
-        {/* SECTION INTRO */}
-        {/* <Reveal>
-          <div className="flex items-center justify-center gap-2.5 text-[10px] uppercase tracking-[0.13em] font-bold text-gray-500 mb-5">
-            <motion.span
-              initial={{ width: 0 }}
-              whileInView={{ width: 18 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.6 }}
-              className="h-0.5 bg-accent block shrink-0"
-            />
-
-            The problem
-          </div>
-        </Reveal> */}
-
-        {/* HEADLINE */}
-        <h2 className="text-[clamp(30px,8.5vw,72px)] sm:text-[clamp(34px,5vw,72px)] leading-[1.08] tracking-[-0.035em] font-normal max-w-[900px] mx-auto text-center">
+          {/* HEADLINE */}
+          <h2 className="text-[clamp(30px,8.5vw,72px)] sm:text-[clamp(34px,5vw,72px)] leading-[1.08] tracking-[-0.035em] font-normal max-w-[900px] mx-auto text-center">
             <AnimatedWords text="Running a business" delay={0.05} />
 
-          <br />
+            <br />
 
-         <span className="inline-flex flex-wrap justify-center gap-x-[0.22em] text-[#a57950]">
-            <AnimatedWords text="is already complicated." delay={0.25} />
-          </span>
-        </h2>
-
-        {/* SUPPORTING TEXT */}
-        {/* <Reveal delay={0.15}>
-          <p className="mt-6 max-w-[560px] text-[15px] sm:text-base leading-[1.7] text-gray-500">
-            Your business shouldn't become harder just because your
-            systems aren't connected. Small problems quickly become
-            lost time, missed opportunities and unnecessary work.
-          </p>
-        </Reveal> */}
-      </ScrollFrames>
+            <span className="inline-flex flex-wrap justify-center gap-x-[0.22em] text-[#a57950]">
+              <AnimatedWords text="is already complicated." delay={0.25} />
+            </span>
+          </h2>
+        </ScrollFrames>
+      )}
 
       {/* ───────────── NORMAL PART: scrolls after the frames finish ───────────── */}
       <div className="relative py-16 sm:py-[100px] md:py-[140px] px-5 sm:px-[5vw] md:px-[6vw] bg-white">

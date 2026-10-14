@@ -435,7 +435,7 @@ function FrameStage() {
                     <h3 className="text-[40px] leading-none tracking-[-0.04em] text-neutral-900 sm:text-[56px] md:text-[72px]">
                       {current.title}
                     </h3>
-                    <p className="mt-3 max-w-[340px] text-[13px] leading-[1.6] text-neutral-700 md:text-[16px]">
+                    <p className="mt-3 max-w-[340px] text-[13px] leading-[1.6] text-neutral-700 md:text-[15px]">
                       {current.text}
                     </p>
                   </motion.div>
@@ -633,7 +633,7 @@ export default function JourneySection() {
           </h2>
 
           <Reveal delay={0.15}>
-            <p className="mt-7 max-w-[540px] text-[15px] leading-[1.7] text-gray-500 sm:text-base">
+            <p className="mt-7 max-w-[540px] text-[15px] leading-[1.7] text-gray-500 sm:text-[18px]">
               You don&apos;t need to change everything at once. We build the
               right pieces, connect them together, and improve them as your
               business grows.

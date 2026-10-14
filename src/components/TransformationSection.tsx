@@ -474,7 +474,7 @@ export default function TransformationSection() {
               duration: 0.6,
               delay: 0.55,
             }}
-            className="max-w-[560px] mt-6 text-[14px] md:text-[16px] leading-[1.7] text-gray-400"
+            className="max-w-[560px] mt-6 text-[14px] md:text-[15px] leading-[1.7] text-gray-400"
           >
             Instead of adding more tools to manage, we connect the right
             systems around the way your business actually works.

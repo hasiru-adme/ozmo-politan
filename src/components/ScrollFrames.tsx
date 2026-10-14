@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useScroll } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 type Props = {
   frameCount: number;
@@ -14,6 +14,10 @@ type Props = {
   // content shown on top of the frames while pinned (heading, text ...)
   children?: React.ReactNode;
   contentClassName?: string;
+  // scroll patan gannakota content eka fade out wenna one nam
+  fadeOutOnScroll?: boolean;
+  // fade out iwara wenna scroll progress eka (0.08 = pinned scroll eke 8%)
+  fadeOutEnd?: number;
 };
 
 const defaultSrc = (i: number) =>
@@ -27,6 +31,8 @@ export default function ScrollFrames({
   scrollLength = 250,
   children,
   contentClassName = "",
+  fadeOutOnScroll = false,
+  fadeOutEnd = 0.08,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,6 +41,7 @@ export default function ScrollFrames({
   const targetRef = useRef(0);
   const currentRef = useRef(0);
   const rafRef = useRef<number | null>(null);
+  const lastIndexRef = useRef(-1);
   const [ready, setReady] = useState(false);
 
   // progress 0 -> 1 only while the section is pinned
@@ -43,61 +50,47 @@ export default function ScrollFrames({
     offset: ["start start", "end end"],
   });
 
-const drawImage = (img: HTMLImageElement | undefined) => {
-  const canvas = canvasRef.current;
-  if (!canvas || !img || !img.complete || !img.naturalWidth) return false;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return false;
+  // content fade out when frames start moving
+const [hideContent, setHideContent] = useState(false);
 
-  const cw = canvas.width;
-  const ch = canvas.height;
-  const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-  const w = img.naturalWidth * scale;
-  const h = img.naturalHeight * scale;
+  const drawImage = (img: HTMLImageElement | undefined) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !img || !img.complete || !img.naturalWidth) return false;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return false;
 
-  ctx.globalAlpha = 1;
-  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
-  return true;
-};
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    const w = img.naturalWidth * scale;
+    const h = img.naturalHeight * scale;
 
-const lastIndexRef = useRef(-1);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+    return true;
+  };
 
-const render = (progress: number) => {
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+  const render = (progress: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const p = Math.min(Math.max(progress, 0), 1);
-  const index = Math.round(p * (frameCount - 1));
-  const imgs = imagesRef.current;
+    const p = Math.min(Math.max(progress, 0), 1);
+    const index = Math.round(p * (frameCount - 1));
+    const imgs = imagesRef.current;
 
-  // same frame as last time: nothing to redraw
-  if (index === lastIndexRef.current) return;
+    // same frame as last time: nothing to redraw
+    if (index === lastIndexRef.current) return;
 
-  // draw the exact frame, or the nearest loaded one if it's not ready yet
-  for (let offset = 0; offset < frameCount; offset++) {
-    const a = imgs[index - offset];
-    const b = imgs[index + offset];
-    if (drawImage(a) || drawImage(b)) {
-      lastIndexRef.current = index;
-      return;
+    // draw the exact frame, or the nearest loaded one if it's not ready yet
+    for (let offset = 0; offset < frameCount; offset++) {
+      const a = imgs[index - offset];
+      const b = imgs[index + offset];
+      if (drawImage(a) || drawImage(b)) {
+        lastIndexRef.current = index;
+        return;
+      }
     }
-  }
-};
-
-  // const render = (progress: number) => {
-  //   const canvas = canvasRef.current;
-  //   const ctx = canvas?.getContext("2d");
-  //   if (!canvas || !ctx) return;
-
-  //   const pos = Math.min(Math.max(progress, 0), 1) * (frameCount - 1);
-  //   const i = Math.floor(pos);
-  //   const frac = pos - i;
-  //   const imgs = imagesRef.current;
-
-  //   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //   drawImage(imgs[i], 1);
-  //   if (frac > 0.001 && imgs[i + 1]) drawImage(imgs[i + 1], frac);
-  // };
+  };
 
   const tick = () => {
     const diff = targetRef.current - currentRef.current;
@@ -144,16 +137,16 @@ const render = (progress: number) => {
 
   // canvas size = pinned box size
   useEffect(() => {
-const resize = () => {
-  const canvas = canvasRef.current;
-  const box = stickyRef.current;
-  if (!canvas || !box) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = box.clientWidth * dpr;
-  canvas.height = box.clientHeight * dpr;
-  lastIndexRef.current = -1; // force redraw after resize
-  render(currentRef.current);
-};
+    const resize = () => {
+      const canvas = canvasRef.current;
+      const box = stickyRef.current;
+      if (!canvas || !box) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = box.clientWidth * dpr;
+      canvas.height = box.clientHeight * dpr;
+      lastIndexRef.current = -1; // force redraw after resize
+      render(currentRef.current);
+    };
     resize();
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
@@ -161,16 +154,23 @@ const resize = () => {
   }, []);
 
   // scroll updates the target, the loop eases toward it
-  useEffect(() => {
-    targetRef.current = scrollYProgress.get();
-    currentRef.current = targetRef.current;
-    const unsub = scrollYProgress.on("change", (p) => {
-      targetRef.current = p;
-      start();
-    });
-    return unsub;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollYProgress]);
+useEffect(() => {
+  targetRef.current = scrollYProgress.get();
+  currentRef.current = targetRef.current;
+
+  // page eka refresh karapu scroll position ekath check karanawa
+  setHideContent(scrollYProgress.get() > 0.003);
+
+  const unsub = scrollYProgress.on("change", (p) => {
+    targetRef.current = p;
+    start();
+
+    // scroll patan gaththama hide, top ekata aawama (p = 0) aye penawa
+    setHideContent(p > 0.003);
+  });
+  return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [scrollYProgress]);
 
   return (
     // tall wrapper = the scroll distance while pinned
@@ -180,7 +180,10 @@ const resize = () => {
       style={{ height: `${scrollLength}vh` }}
     >
       {/* sticky = stays on screen while the wrapper scrolls past */}
-      <div ref={stickyRef} className="sticky top-0 h-screen w-full overflow-hidden">
+      <div
+        ref={stickyRef}
+        className="sticky top-0 h-screen w-full overflow-hidden"
+      >
         <canvas
           ref={canvasRef}
           aria-hidden
@@ -190,11 +193,17 @@ const resize = () => {
         />
         <div className={`absolute inset-0 ${overlayClassName}`} />
 
-        <div
-  className={`relative z-10 flex h-full flex-col items-center justify-start text-center ${contentClassName}`}
+<motion.div
+  initial={false}
+  animate={{
+    opacity: fadeOutOnScroll && hideContent ? 0 : 1,
+    y: fadeOutOnScroll && hideContent ? -20 : 0,
+  }}
+  transition={{ duration: 0.25, ease: "easeOut" }}
+  className={`relative z-10 pointer-events-none flex h-full flex-col items-center justify-start text-center ${contentClassName}`}
 >
   {children}
-</div>
+</motion.div>
       </div>
     </div>
   );

@@ -235,7 +235,7 @@ export default function HowSection() {
             delay={0.15}
             stagger={0.025}
             duration={0.45}
-            className="mt-7 max-w-[650px] text-[15px] leading-[1.7] text-gray-500 md:text-[18px]"
+            className="mt-7 max-w-[650px] text-[15px] leading-[1.7] text-gray-500 md:text-[15px]"
           />
         </div>
 
@@ -323,7 +323,7 @@ export default function HowSection() {
                         delay={0.05}
                         stagger={0.06}
                         duration={0.45}
-                        className="text-[17px] font-semibold tracking-[-0.02em] text-gray-900 md:text-[18px]"
+                        className="text-[17px] font-semibold tracking-[-0.02em] text-gray-900 md:text-[15px]"
                       />
 
                       {/* Description WORD ANIMATION */}

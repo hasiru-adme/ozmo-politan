@@ -230,7 +230,7 @@ export default function ModelSection() {
             delay={0.15}
             stagger={0.025}
             duration={0.45}
-            className="mt-7 max-w-[540px] text-[14px] leading-[1.7] text-gray-600 md:text-[16px]"
+            className="mt-7 max-w-[540px] text-[14px] leading-[1.7] text-gray-600 md:text-[18px]"
           />
 
           {/* CTA */}
@@ -426,7 +426,7 @@ export default function ModelSection() {
             delay={0.05}
             stagger={0.045}
             duration={0.5}
-            className="max-w-[700px] text-[18px] leading-[1.35] tracking-[-0.02em] text-gray-700 md:text-[22px]"
+            className="max-w-[700px] text-[15px] leading-[1.35] tracking-[-0.02em] text-gray-700 md:text-[22px]"
           />
 
           <motion.div

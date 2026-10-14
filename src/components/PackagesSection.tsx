@@ -172,7 +172,7 @@ export default function PackagesSection() {
             delay={0.3}
             stagger={0.025}
             duration={0.45}
-            className="mx-auto mt-7 max-w-[650px] text-[14px] leading-[1.75] text-gray-600 md:text-[16px]"
+            className="mx-auto mt-7 max-w-[650px] text-[14px] leading-[1.75] text-gray-600  md:text-[18px]"
           />
         </div>
 
@@ -547,7 +547,7 @@ export default function PackagesSection() {
             delay={0.2}
             stagger={0.035}
             duration={0.4}
-            className="mx-auto mt-3 text-[12px] text-gray-500"
+            className="mx-auto mt-3 text-[12px] text-gray-500 md:text-[16px]"
           />
         </Reveal>
       </div>

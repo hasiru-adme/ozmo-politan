@@ -263,7 +263,7 @@ export default function CaseSection() {
             delay={0.18}
             stagger={0.03}
             duration={0.45}
-            className="mt-6 max-w-[560px] text-[15px] leading-[1.7] text-white/70 md:text-[17px]"
+            className="mt-6 max-w-[560px] text-[15px] leading-[1.7] text-white/70 md:text-[18px]"
           />
         </div>
 
@@ -288,13 +288,13 @@ export default function CaseSection() {
                       delay={0.08}
                       stagger={0.025}
                       duration={0.42}
-                      className="text-[13px] font-semibold leading-[1.45] text-white"
+                      className="text-[13px] md:text-[14px] font-semibold leading-[1.45] text-white text-center"
                     />
 
-                    <div className="mt-3 flex -translate-x-2 items-center gap-1.5 overflow-hidden text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">
+                    {/* <div className="mt-3 flex -translate-x-2 items-center gap-1.5 overflow-hidden text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">
                       <span>See how it works</span>
                       <ArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-1" />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </TiltCard>

@@ -296,7 +296,7 @@ function NeedCard({
 
         <CardText
           delay={0.18}
-          className={`mt-6 max-w-[250px] text-[13px] leading-[1.65] transition-colors duration-500 ${
+          className={`mt-6 max-w-[250px] text-[13px] md:text-[15px] leading-[1.65] transition-colors duration-500 ${
             on ? "text-neutral-400" : "text-neutral-500 group-hover:text-neutral-400"
           }`}
         >
@@ -444,7 +444,7 @@ export default function NeedsSection() {
             <AnimatedWords
               delay={0.72}
               stagger={0.025}
-              className="mt-7 max-w-[560px] text-[14px] leading-[1.7] text-neutral-500 md:text-[16px]"
+              className="mt-7 max-w-[560px] text-[14px] leading-[1.7] text-neutral-500 md:text-[18px]"
             >
               You don't need to understand the technology. Just tell us what is making your business harder. We'll help you find the right solution.
             </AnimatedWords>

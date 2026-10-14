@@ -245,7 +245,7 @@ export default function WhySection() {
                 delay={0.2}
                 stagger={0.025}
                 duration={0.42}
-                className="mt-8 max-w-[430px] text-sm leading-7 text-gray-500 md:text-base"
+                className="mt-8 max-w-[430px] text-sm leading-7 text-gray-500  md:text-[18px]"
               />
 
               {/* Bottom statement */}

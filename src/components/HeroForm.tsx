@@ -29,7 +29,7 @@ const item = {
 };
 
 const field =
-  "w-full rounded-xl border border-black/10 bg-white/40 px-4 py-3 text-xs text-gray-900 " +
+  "w-full rounded-xl border border-black/10 bg-white/40 px-4 py-3 text-xs text-gray-900 md:text-sm " +
   "placeholder:text-gray-500 outline-none backdrop-blur-sm transition " +
   "focus:border-accent focus:bg-white/70 focus:shadow-[0_0_0_4px_rgba(243,181,27,0.15)]";
 
@@ -113,14 +113,14 @@ export default function HeroForm() {
               </div>
 
               <motion.div variants={item}>
-                <div className="mb-1.5 flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-gray-600">
+                <div className="mb-1.5 flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-gray-600 md:text-[13px]">
                   <span className="block h-0.5 w-4 bg-accent" />
                   Start with the problem
                 </div>
                 <h3 className="text-xl font-semibold leading-tight tracking-[-0.02em]">
                   Let&apos;s talk about your business
                 </h3>
-                <p className="mt-1 text-xs text-gray-600">
+                <p className="mt-1 text-xs text-gray-600 md:text-[14px]">
                   Tell us what&apos;s slowing you down — no pressure, no tech jargon.
                 </p>
               </motion.div>

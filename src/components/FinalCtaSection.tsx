@@ -47,15 +47,15 @@ function AnimatedWords({
           animate={
             inView
               ? {
-                  opacity: 1,
-                  y: 0,
-                  filter: "blur(0px)",
-                }
+                opacity: 1,
+                y: 0,
+                filter: "blur(0px)",
+              }
               : {
-                  opacity: 0,
-                  y: 20,
-                  filter: "blur(5px)",
-                }
+                opacity: 0,
+                y: 20,
+                filter: "blur(5px)",
+              }
           }
           transition={{
             duration,
@@ -334,7 +334,7 @@ export default function FinalCtaSection() {
             text-[14px]
             leading-[1.75]
             text-gray-600
-            md:text-[16px]
+            md:text-[18px]
           "
         />
 
@@ -461,7 +461,7 @@ export default function FinalCtaSection() {
           "
         >
           <span className="h-1 w-1 rounded-full bg-accent" />
-       
+
         </motion.div>
 
         {/* Bottom accent */}

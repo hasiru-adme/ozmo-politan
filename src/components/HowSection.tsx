@@ -228,7 +228,7 @@ export default function HowSection() {
           delay={0.15}
           stagger={0.025}
           duration={0.45}
-          className="mt-7 max-w-[620px] text-[15px] leading-[1.7] text-gray-500 md:text-[17px]"
+          className="mt-7 max-w-[620px] text-[15px] leading-[1.7] text-gray-500 md:text-[18px]"
         />
 
         {/* =========================
@@ -237,7 +237,7 @@ export default function HowSection() {
         <Reveal delay={0.1} className="mt-14 w-full md:mt-16">
           {/* XP bar */}
           <div className="mx-auto mb-14 w-full max-w-[420px]">
-            <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.13em] text-gray-500">
+            <div className="mb-2 flex items-center justify-between text-[10px] md:text-[12px] font-bold uppercase tracking-[0.13em] text-gray-500">
               <span>
                 Step {Math.min(current + 1, steps.length)} of {steps.length}
               </span>
@@ -371,7 +371,7 @@ export default function HowSection() {
                   Step {step.number}
                 </div>
                 <h3 className="text-2xl font-semibold tracking-[-0.03em] md:text-3xl">{step.title}</h3>
-                <p className="mx-auto mt-2 max-w-[360px] text-[13px] leading-[1.6] text-gray-500">{step.text}</p>
+                <p className="mx-auto mt-2 max-w-[360px] text-[13px] md:text-[15px] leading-[1.6] text-gray-500">{step.text}</p>
 
                 <div className="mt-6 text-xs font-semibold text-gray-800">{step.question}</div>
 
