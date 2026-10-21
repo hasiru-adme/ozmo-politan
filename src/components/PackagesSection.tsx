@@ -164,7 +164,7 @@ export default function PackagesSection() {
             delay={0.2}
             stagger={0.065}
             duration={0.6}
-            className="mt-1 text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em] text-[#a57950]"
+            className="mt-1 text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em] text-[#d97706]"
           />
 
           <AnimatedWords
@@ -489,7 +489,7 @@ export default function PackagesSection() {
               delay={0.2}
               stagger={0.045}
               duration={0.5}
-              className="mt-1 text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em] text-[#a57950]"
+              className="mt-1 text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em] text-[#d97706]"
             />
           </div>
 

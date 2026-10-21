@@ -256,7 +256,7 @@ export default function CaseSection() {
             delay={0.18}
             stagger={0.07}
             duration={0.6}
-            className="text-[clamp(38px,5vw,72px)] font-normal leading-[0.98] tracking-[-0.045em] text-[#a57950]"
+            className="text-[clamp(38px,5vw,72px)] font-normal leading-[0.98] tracking-[-0.045em] text-[#d97706]"
           />
           <AnimatedWords
             text="Here's what happens when the right digital systems work together."

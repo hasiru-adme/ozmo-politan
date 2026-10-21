@@ -53,7 +53,6 @@ export default function QuestionSection() {
 
       {/* Content */}
       <div className="relative z-10 max-w-[1050px] mx-auto">
-
         {/* ICON */}
         <motion.div
           initial={{
@@ -117,34 +116,8 @@ export default function QuestionSection() {
           />
         </motion.div>
 
-        {/* SMALL LABEL */}
-        {/* <motion.div
-          initial={{
-            opacity: 0,
-            y: 15,
-          }}
-          animate={
-            inView
-              ? {
-                  opacity: 1,
-                  y: 0,
-                }
-              : {
-                  opacity: 0,
-                  y: 15,
-                }
-          }
-          transition={{
-            delay: 0.2,
-            duration: 0.6,
-          }}
-          className="text-[10px] uppercase tracking-[0.18em] font-bold text-gray-400 mb-6"
-        >
-          Imagine what&apos;s possible
-        </motion.div> */}
-
         {/* MAIN QUESTION */}
-        <h2 className="text-[clamp(38px,5.5vw,76px)] leading-[1.02] tracking-[-0.045em] font-normal">
+        <h2 className="text-[clamp(38px,5.5vw,76px)] leading-[1.02] tracking-[-0.045em] font-normal text-gray-900">
           {words.map((word, index) => (
             <motion.span
               key={`${word}-${index}`}
@@ -172,7 +145,7 @@ export default function QuestionSection() {
                 ease: [0.22, 1, 0.36, 1],
               }}
               className={`inline-block mr-[0.2em] ${
-                index >= 7 ? "text-[#a57950]" : ""
+                index >= 7 ? "text-[#d97706] font-medium" : "text-gray-800"
               }`}
             >
               {word}
@@ -204,7 +177,7 @@ export default function QuestionSection() {
           }}
           className="mt-7"
         >
-          <p className="text-gray-500 text-sm sm:text-base">
+          <p className="text-gray-600 text-sm sm:text-base font-medium">
             We can help.
           </p>
 
@@ -257,9 +230,9 @@ export default function QuestionSection() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center"
+            className="w-9 h-9 rounded-full border border-gray-300 bg-white/60 shadow-sm flex items-center justify-center"
           >
-            <ArrowDown size={14} className="text-gray-500" />
+            <ArrowDown size={14} className="text-gray-600" />
           </motion.div>
         </motion.div>
       </div>

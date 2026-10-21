@@ -315,7 +315,7 @@ export default function FinalCtaSection() {
             font-normal
             leading-[0.95]
             tracking-[-0.05em]
-            text-[#a57950]
+            text-[#d97706]
           "
         />
 

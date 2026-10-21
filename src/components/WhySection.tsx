@@ -235,7 +235,7 @@ export default function WhySection() {
                 delay={0.18}
                 stagger={0.07}
                 duration={0.6}
-                className="text-[clamp(44px,5.5vw,82px)] font-normal leading-[0.94] tracking-[-0.045em] text-[#a57950]"
+                className="text-[clamp(44px,5.5vw,82px)] font-normal leading-[0.94] tracking-[-0.045em] text-[#d97706]"
               />
 
               {/* Description */}
