@@ -20,13 +20,19 @@ import { categories } from "@/lib/packagesData";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-type PaymentPlan = "full" | "6" | "12" | "24";
+export type PaymentPlan = "full" | "6" | "12" | "24";
+
+export type ChooseInfo = {
+  category: string;
+  package: string;
+  plan: PaymentPlan;
+};
 
 const paymentPlans = [
   { id: "full" as PaymentPlan, label: "Pay in Full", suffix: "one-time" },
-  { id: "6" as PaymentPlan, label: "6 Months", suffix: "interest-free" },
-  { id: "12" as PaymentPlan, label: "12 Months", suffix: "interest-free" },
-  { id: "24" as PaymentPlan, label: "24 Months", suffix: "interest-free" },
+  { id: "6" as PaymentPlan, label: "6 Months", suffix: "instalments" },
+  { id: "12" as PaymentPlan, label: "12 Months", suffix: "instalments" },
+  { id: "24" as PaymentPlan, label: "24 Months", suffix: "instalments" },
 ];
 
 const managedServices = [
@@ -101,7 +107,11 @@ function Reveal({
   );
 }
 
-export default function PackagesSection() {
+export default function PackagesSection({
+  onChoose,
+}: {
+  onChoose?: (info: ChooseInfo) => void;
+}) {
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan>("12");
   const [selectedCategory, setSelectedCategory] = useState(categories[0].id);
 
@@ -120,7 +130,7 @@ export default function PackagesSection() {
       const max = el.scrollWidth - el.clientWidth;
       const atStart = el.scrollLeft <= 0 && e.deltaY < 0;
       const atEnd = el.scrollLeft >= max - 1 && e.deltaY > 0;
-      if (atStart || atEnd) return; // at the edge: let the page scroll normally
+      if (atStart || atEnd) return;
       e.preventDefault();
       el.scrollLeft += e.deltaY;
     };
@@ -137,10 +147,12 @@ export default function PackagesSection() {
     return Math.ceil(price / Number(selectedPlan));
   };
 
+  const fmt = (n: number) => n.toLocaleString("en-AU");
+
   return (
     <section
       id="packages"
-      className="relative overflow-hidden bg-[#f0f0eb] px-[5vw] py-[100px] md:px-[6vw] md:py-[150px]"
+      className="relative overflow-hidden bg-sand px-[5vw] py-[100px] md:px-[6vw] md:py-[150px]"
     >
       {/* Background atmosphere */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -156,7 +168,7 @@ export default function PackagesSection() {
             delay={0.05}
             stagger={0.065}
             duration={0.6}
-            className="text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em]"
+            className="text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em] text-ink"
           />
 
           <AnimatedWords
@@ -164,7 +176,7 @@ export default function PackagesSection() {
             delay={0.2}
             stagger={0.065}
             duration={0.6}
-            className="mt-1 text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em] text-[#d97706]"
+            className="mt-1 text-[clamp(42px,6vw,82px)] leading-[0.95] tracking-[-0.05em] text-accent-deep"
           />
 
           <AnimatedWords
@@ -172,7 +184,7 @@ export default function PackagesSection() {
             delay={0.3}
             stagger={0.025}
             duration={0.45}
-            className="mx-auto mt-7 max-w-[650px] text-[14px] leading-[1.75] text-gray-600  md:text-[18px]"
+            className="mx-auto mt-7 max-w-[650px] text-base leading-[1.75] text-muted md:text-lg"
           />
         </div>
 
@@ -180,12 +192,11 @@ export default function PackagesSection() {
         <Reveal delay={0.2} className="mx-auto mt-12 max-w-[1000px]">
           <div className="rounded-[24px] border border-black/[0.07] bg-white/70 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.04)] backdrop-blur-xl">
             <div className="mb-3 px-3 pt-2 text-left">
-              <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-gray-400">
+              <p className="text-xs font-bold uppercase tracking-[0.13em] text-muted">
                 What do you need?
               </p>
             </div>
 
-            {/* single line, horizontal scroll */}
             <div className="relative">
               <div
                 ref={rowRef}
@@ -198,17 +209,17 @@ export default function PackagesSection() {
                   return (
                     <button
                       key={cat.id}
+                      type="button"
                       onClick={() => setSelectedCategory(cat.id)}
                       aria-pressed={active}
-                      suppressHydrationWarning
                       className={`relative shrink-0 whitespace-nowrap rounded-[18px] px-4 py-3.5 text-left transition-colors duration-300 ${
-                        active ? "text-white shadow-lg" : "text-gray-600 hover:bg-black/[0.04]"
+                        active ? "text-white shadow-lg" : "text-muted hover:bg-black/[0.04]"
                       }`}
                     >
                       {active && (
                         <motion.div
                           layoutId="category-active"
-                          className="absolute inset-0 rounded-[18px] bg-black"
+                          className="absolute inset-0 rounded-[18px] bg-ink"
                           transition={{ duration: 0.3, ease }}
                         />
                       )}
@@ -216,30 +227,31 @@ export default function PackagesSection() {
                       <div className="relative z-10 flex items-center gap-2.5">
                         <span
                           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                            active ? "bg-accent text-black" : "bg-black/[0.05]"
+                            active ? "bg-accent text-ink" : "bg-black/[0.05]"
                           }`}
                         >
                           <Icon size={14} />
                         </span>
-                        <span className="text-xs font-bold leading-tight">{cat.label}</span>
+                        <span className="text-sm font-bold leading-tight">{cat.label}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
 
-              {/* arrows (desktop) */}
               <button
+                type="button"
                 onClick={() => scrollRow(-1)}
                 aria-label="Scroll left"
-                className="absolute left-0 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md md:flex"
+                className="absolute left-0 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-md md:flex"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
+                type="button"
                 onClick={() => scrollRow(1)}
                 aria-label="Scroll right"
-                className="absolute right-0 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md md:flex"
+                className="absolute right-0 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-md md:flex"
               >
                 <ChevronRight size={16} />
               </button>
@@ -250,7 +262,7 @@ export default function PackagesSection() {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease }}
-              className="px-3 pb-2 pt-3 text-left text-[12px] text-gray-500"
+              className="px-3 pb-2 pt-3 text-left text-sm text-muted"
             >
               {activeCategory.tagline}
             </motion.p>
@@ -261,7 +273,7 @@ export default function PackagesSection() {
         <Reveal delay={0.25} className="mx-auto mt-6 max-w-[760px]">
           <div className="rounded-[24px] border border-black/[0.07] bg-white/70 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.04)] backdrop-blur-xl">
             <div className="mb-3 px-3 pt-2 text-left">
-              <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-gray-400">
+              <p className="text-xs font-bold uppercase tracking-[0.13em] text-muted">
                 Choose how you want to pay
               </p>
             </div>
@@ -273,30 +285,31 @@ export default function PackagesSection() {
                 return (
                   <button
                     key={plan.id}
+                    type="button"
                     onClick={() => setSelectedPlan(plan.id)}
-                    suppressHydrationWarning
+                    aria-pressed={active}
                     className={`group relative rounded-[18px] px-3 py-3.5 text-left transition-all duration-300 ${
-                      active ? "bg-black text-white shadow-lg" : "text-gray-600 hover:bg-black/[0.04]"
+                      active ? "text-white shadow-lg" : "text-muted hover:bg-black/[0.04]"
                     }`}
                   >
                     {active && (
                       <motion.div
                         layoutId="payment-active"
-                        className="absolute inset-0 rounded-[18px] bg-black"
+                        className="absolute inset-0 rounded-[18px] bg-ink"
                         transition={{ duration: 0.3, ease }}
                       />
                     )}
 
                     <div className="relative z-10">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold">{plan.label}</span>
+                        <span className="text-sm font-bold">{plan.label}</span>
                         {active && (
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-black">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-ink">
                             <Check size={12} strokeWidth={3} />
                           </span>
                         )}
                       </div>
-                      <span className={`mt-1 block text-[9px] ${active ? "text-white/50" : "text-gray-400"}`}>
+                      <span className={`mt-1 block text-xs ${active ? "text-white/70" : "text-muted"}`}>
                         {plan.suffix}
                       </span>
                     </div>
@@ -307,7 +320,7 @@ export default function PackagesSection() {
           </div>
         </Reveal>
 
-        {/* PACKAGE CARDS (key = category, so cards re-animate on change) */}
+        {/* PACKAGE CARDS */}
         <div key={activeCategory.id} className="mt-10 grid gap-5 lg:grid-cols-3">
           {activeCategory.packages.map((pkg, index) => {
             const monthly = getMonthlyPrice(pkg.price);
@@ -319,18 +332,17 @@ export default function PackagesSection() {
                   transition={{ duration: 0.35, ease }}
                   className={`group relative flex h-full flex-col overflow-hidden rounded-[28px] border p-7 md:p-8 ${
                     pkg.popular
-                      ? "border-black bg-black text-white shadow-[0_25px_70px_rgba(0,0,0,0.13)]"
-                      : "border-black/[0.07] bg-white/75 text-black shadow-[0_20px_60px_rgba(0,0,0,0.04)]"
+                      ? "border-accent bg-ink text-white shadow-[0_25px_70px_rgba(0,0,0,0.18)] ring-2 ring-accent/40 lg:scale-[1.03]"
+                      : "border-black/[0.07] bg-white/75 text-ink shadow-[0_20px_60px_rgba(0,0,0,0.04)]"
                   }`}
                 >
                   {pkg.popular && (
-                    <div className="absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-black">
+                    <div className="absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-ink">
                       <Sparkles size={11} />
                       Most Popular
                     </div>
                   )}
 
-                  {/* Decorative glow */}
                   <div
                     className={`pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full blur-[80px] transition-opacity duration-500 ${
                       pkg.popular
@@ -341,8 +353,8 @@ export default function PackagesSection() {
 
                   <div className="relative z-10">
                     <span
-                      className={`text-[9px] font-bold uppercase tracking-[0.16em] ${
-                        pkg.popular ? "text-white/40" : "text-gray-400"
+                      className={`text-xs font-bold uppercase tracking-[0.16em] ${
+                        pkg.popular ? "text-white/60" : "text-muted"
                       }`}
                     >
                       {pkg.eyebrow}
@@ -351,8 +363,8 @@ export default function PackagesSection() {
                     <h3 className="mt-3 text-[32px] font-medium tracking-[-0.04em]">{pkg.name}</h3>
 
                     <p
-                      className={`mt-3 min-h-[70px] text-[13px] leading-[1.65] ${
-                        pkg.popular ? "text-white/55" : "text-gray-500"
+                      className={`mt-3 min-h-[70px] text-sm leading-[1.65] ${
+                        pkg.popular ? "text-white/70" : "text-muted"
                       }`}
                     >
                       {pkg.description}
@@ -365,8 +377,8 @@ export default function PackagesSection() {
                       }`}
                     >
                       <span
-                        className={`text-[9px] uppercase tracking-[0.12em] ${
-                          pkg.popular ? "text-white/35" : "text-gray-400"
+                        className={`text-xs uppercase tracking-[0.12em] ${
+                          pkg.popular ? "text-white/60" : "text-muted"
                         }`}
                       >
                         From
@@ -380,18 +392,18 @@ export default function PackagesSection() {
                           transition={{ duration: 0.35, ease }}
                           className="text-[36px] font-medium tracking-[-0.04em]"
                         >
-                          ${selectedPlan === "full" ? pkg.price.toLocaleString() : monthly.toLocaleString()}
+                          A${selectedPlan === "full" ? fmt(pkg.price) : fmt(monthly)}
                         </motion.span>
 
                         <span
-                          className={`mb-1.5 text-[10px] ${pkg.popular ? "text-white/40" : "text-gray-400"}`}
+                          className={`mb-1.5 text-xs ${pkg.popular ? "text-white/60" : "text-muted"}`}
                         >
-                          {selectedPlan === "full" ? "one-time" : "/ month"}
+                          AUD {selectedPlan === "full" ? "one-time" : "/ month"}
                         </span>
                       </div>
 
                       {selectedPlan !== "full" && (
-                        <p className={`mt-1 text-[9px] ${pkg.popular ? "text-accent" : "text-gray-400"}`}>
+                        <p className={`mt-1 text-xs ${pkg.popular ? "text-accent" : "text-muted"}`}>
                           {selectedPlan} month payment plan
                         </p>
                       )}
@@ -410,12 +422,12 @@ export default function PackagesSection() {
                         >
                           <span
                             className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                              pkg.popular ? "bg-accent text-black" : "bg-black/[0.06] text-black"
+                              pkg.popular ? "bg-accent text-ink" : "bg-black/[0.06] text-ink"
                             }`}
                           >
                             <Check size={10} strokeWidth={3} />
                           </span>
-                          <span className={`text-[12px] ${pkg.popular ? "text-white/70" : "text-gray-600"}`}>
+                          <span className={`text-sm ${pkg.popular ? "text-white/80" : "text-muted"}`}>
                             {feature}
                           </span>
                         </motion.div>
@@ -424,42 +436,56 @@ export default function PackagesSection() {
                   </div>
 
                   {/* CTA */}
-                  <a
-                    href={`#contact?category=${activeCategory.id}&package=${pkg.id}`}
-                    className={`group/btn relative z-10 mt-auto flex w-full items-center justify-between rounded-full px-5 py-3.5 text-xs font-bold transition-all duration-300 ${
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChoose?.({
+                        category: activeCategory.id,
+                        package: pkg.id,
+                        plan: selectedPlan,
+                      })
+                    }
+                    className={`group/btn relative z-10 mt-8 flex w-full items-center justify-between rounded-full px-5 py-3.5 text-sm font-bold transition-all duration-300 ${
                       pkg.popular
-                        ? "bg-white text-black hover:bg-accent"
-                        : "bg-black text-white hover:bg-accent hover:text-black"
+                        ? "bg-white text-ink hover:bg-accent"
+                        : "bg-ink text-white hover:bg-accent hover:text-ink"
                     }`}
                   >
                     <span>Choose {pkg.name}</span>
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/10 transition-transform duration-300 group-hover/btn:translate-x-1">
                       <ArrowRight size={15} />
                     </span>
-                  </a>
+                  </button>
                 </motion.div>
               </Reveal>
             );
           })}
         </div>
 
+        {/* PRICING NOTE */}
+        <p className="mx-auto mt-6 max-w-[800px] text-center text-xs text-muted md:text-sm">
+          All prices in AUD, GST [inclusive / exclusive]. Final quote depends on scope and is
+          confirmed in writing before work starts. Third-party software, hosting and usage
+          fees are [included / charged separately].
+        </p>
+
         {/* SUPPORT MESSAGE */}
         <Reveal delay={0.25} className="mt-10">
-          <div className="relative overflow-hidden rounded-[26px] border border-accent/20 bg-accent/[0.07] px-6 py-7 text-center md:px-10">
+          <div className="relative overflow-hidden rounded-[26px] border border-accent/30 bg-accent/[0.08] px-6 py-7 text-center md:px-10">
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[180px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.10] blur-[80px]" />
 
             <div className="relative z-10 flex flex-col items-center">
-              <div className="mb-3 flex items-center gap-2 text-accent">
+              <div className="mb-3 flex items-center gap-2 text-accent-deep">
                 <Zap size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-[0.13em]">After launch</span>
+                <span className="text-xs font-bold uppercase tracking-[0.13em]">After launch</span>
               </div>
 
               <AnimatedWords
-                text="Your first 3 months of support can be free."
+                text="Includes 3 months of support after launch."
                 delay={0.1}
                 stagger={0.04}
                 duration={0.45}
-                className="text-[22px] font-medium tracking-[-0.025em] md:text-[28px]"
+                className="text-[22px] font-medium tracking-[-0.025em] text-ink md:text-[28px]"
               />
 
               <AnimatedWords
@@ -467,7 +493,7 @@ export default function PackagesSection() {
                 delay={0.2}
                 stagger={0.025}
                 duration={0.4}
-                className="mt-3 max-w-[650px] text-[12px] leading-[1.7] text-gray-600 md:text-[13px]"
+                className="mt-3 max-w-[650px] text-sm leading-[1.7] text-muted md:text-base"
               />
             </div>
           </div>
@@ -481,7 +507,7 @@ export default function PackagesSection() {
               delay={0.05}
               stagger={0.045}
               duration={0.5}
-              className="text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em]"
+              className="text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em] text-ink"
             />
 
             <AnimatedWords
@@ -489,7 +515,7 @@ export default function PackagesSection() {
               delay={0.2}
               stagger={0.045}
               duration={0.5}
-              className="mt-1 text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em] text-[#d97706]"
+              className="mt-1 text-[clamp(30px,4vw,52px)] leading-[1] tracking-[-0.045em] text-accent-deep"
             />
           </div>
 
@@ -504,7 +530,7 @@ export default function PackagesSection() {
                     transition={{ duration: 0.3, ease }}
                     className="group rounded-[22px] border border-black/[0.06] bg-white/60 p-6 transition-all duration-300 hover:border-black/[0.12] hover:bg-white hover:shadow-[0_15px_40px_rgba(0,0,0,0.05)]"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.04] transition-all duration-300 group-hover:scale-105 group-hover:bg-accent">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.04] text-ink transition-all duration-300 group-hover:scale-105 group-hover:bg-accent">
                       <Icon size={18} />
                     </div>
 
@@ -513,7 +539,7 @@ export default function PackagesSection() {
                       delay={0.05}
                       stagger={0.035}
                       duration={0.4}
-                      className="mt-5 text-[15px] font-semibold tracking-[-0.01em]"
+                      className="mt-5 text-base font-semibold tracking-[-0.01em] text-ink"
                     />
 
                     <AnimatedWords
@@ -521,7 +547,7 @@ export default function PackagesSection() {
                       delay={0.1}
                       stagger={0.018}
                       duration={0.35}
-                      className="mt-2 text-[14px] leading-[1.65] text-gray-500"
+                      className="mt-2 text-sm leading-[1.65] text-muted md:text-[15px]"
                     />
                   </motion.div>
                 </Reveal>
@@ -539,7 +565,7 @@ export default function PackagesSection() {
             delay={0.1}
             stagger={0.045}
             duration={0.5}
-            className="mt-7 text-[clamp(24px,3vw,40px)] leading-[1.05] tracking-[-0.04em]"
+            className="mt-7 text-[clamp(24px,3vw,40px)] leading-[1.05] tracking-[-0.04em] text-ink"
           />
 
           <AnimatedWords
@@ -547,7 +573,7 @@ export default function PackagesSection() {
             delay={0.2}
             stagger={0.035}
             duration={0.4}
-            className="mx-auto mt-3 text-[12px] text-gray-500 md:text-[16px]"
+            className="mx-auto mt-3 text-sm text-muted md:text-base"
           />
         </Reveal>
       </div>

@@ -79,7 +79,7 @@ export default function FinalCtaSection() {
 
   return (
     <section
-      id="contact"
+     id="final-cta"
       className="
         relative
         flex
@@ -98,7 +98,6 @@ export default function FinalCtaSection() {
     >
       {/* =================================
           AMBIENT BACKGROUND
-          (glows boosted so the glass blur shows)
       ================================= */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -315,7 +314,7 @@ export default function FinalCtaSection() {
             font-normal
             leading-[0.95]
             tracking-[-0.05em]
-            text-[#d97706]
+            text-[#d88900]
           "
         />
 

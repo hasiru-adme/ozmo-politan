@@ -1,10 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,100..900&display=swap');
 
 @import "tailwindcss";
 
 @theme {
+  /* Brand surfaces */
+  --color-bg: #f7f7f4;
+  --color-surface: #ffffff;
+  --color-sand: #f0f0eb;
+  --color-soft: #efefeb;
+  --color-line: #e4e4df;
+  --color-charcoal: #161513;
+
+  /* Typography */
+  --color-ink: #1c1b19;
+  --color-muted: #5a5750;
+
+  /* Ozmo accent */
+  --color-accent: #f3b51b;
+  --color-accent-deep: #d88900;
+
+  /* Earth tones */
   --color-sage: #c7cab9;
   --color-sage-light: #dde0d4;
   --color-sage-dark: #9a9d8c;
@@ -13,15 +29,7 @@
   --color-gold-light: #ecdbb8;
   --color-gold-dark: #b8985f;
 
-  --color-bg: #f7f7f4;
-  --color-ink: #111111;
-  --color-muted: #70706b;
-  --color-line: #e4e4df;
-
-  --color-accent: #f3b51b;
-  --color-accent-dark: #c88d00;
-  --color-soft: #efefeb;
-
+  /* Category colours */
   --color-blue: #dfeaf5;
   --color-blue-ink: #46627b;
 
@@ -40,24 +48,103 @@
   --color-teal: #dceaea;
   --color-teal-ink: #4f7070;
 
-  --font-sans: 'Figtree', 'Roboto', Arial, Helvetica, sans-serif;
+  /* Typography */
+  --font-sans: "Figtree", Arial, Helvetica, sans-serif;
 }
 
 /* =========================================================
    BASE
    ========================================================= */
 
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 90px;
+}
+
 html,
 body {
+  min-height: 100%;
   margin: 0;
   padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-deep);
+  outline-offset: 3px;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   HERO BACKGROUND
+   ========================================================= */
+
+/*
+  Add className="ozmo-hero-background" to the hero section
+  if this is the background image you want to use.
+*/
+
+.ozmo-hero-background {
+  background-color: var(--color-bg);
+  background-image: url("/images/hero/hero-visual.jpeg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Keep the visual composition suitable for mobile. */
+@media (max-width: 767px) {
+  .ozmo-hero-background {
+    background-position: 55% center;
+  }
 }
 
 /* =========================================================
@@ -95,4 +182,24 @@ html.lenis {
 
 canvas {
   display: block;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  html.lenis {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

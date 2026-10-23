@@ -1,38 +1,68 @@
+import SmoothScroll from "@/components/SmoothScroll";
+import SiteLoader from "@/components/SiteLoader";
 import HeroSection from "@/components/HeroSection";
 import ProblemSection from "@/components/ProblemSection";
 import QuestionSection from "@/components/QuestionSection";
 import JourneySection from "@/components/JourneySection";
-import TransformationSection from "@/components/TransformationSection";
 import NeedsSection from "@/components/NeedsSection";
-import HowSection from "@/components/HowSection";
-import ModelSection from "@/components/ModelSection";
 import CaseSection from "@/components/CaseSection";
+import HowSection from "@/components/HowSection";
+// import WhoWeHelpSection from "@/components/WhoWeHelpSection";
 import WhySection from "@/components/WhySection";
+import FaqSection from "@/components/FaqSection";
+import PackagesWithModal from "@/components/PackagesSection";
 import FinalCtaSection from "@/components/FinalCtaSection";
 import SiteFooter from "@/components/SiteFooter";
-import PackagesSection from "@/components/PackagesSection";
 import ScrollVideoBackground from "@/components/ScrollVideoBackground";
-import AdmeTechSection from "@/components/AdmeTechSection";
+import WhoWeHelpSection from "@/components/WhoWeHelpSection";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <>
-      <ScrollVideoBackground />
+       <ScrollVideoBackground />
       <main className="relative z-10">
-        <HeroSection />
+      <SmoothScroll />
+      <SiteLoader />
+
+      {/* 1 */}
+      <HeroSection />
+
+      {/* 2 */}
+      <div id="problems">
         <ProblemSection />
         <QuestionSection />
+      </div>
+
+      {/* 3 */}
+      <div id="solutions">
         <JourneySection />
-        {/* <TransformationSection /> */}
         <NeedsSection />
-        <HowSection />
-        <ModelSection />
+      </div>
+
+      {/* 4 */}
+      <div id="action">
         <CaseSection />
-        <WhySection />
-        <PackagesSection />
+      </div>
+
+      {/* 5 */}
+      <HowSection />
+
+      {/* 6 */}
+      <WhoWeHelpSection /> 
+
+      {/* 7 */}
+      <WhySection />
+
+      {/* 8 */}
+      <FaqSection />
+
+      {/* 9 */}
+      <div id="start">
+        <PackagesWithModal />
         <FinalCtaSection />
-           <AdmeTechSection />
-        <SiteFooter />
+      </div>
+
+      <SiteFooter />
       </main>
     </>
   );

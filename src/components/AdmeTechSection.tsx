@@ -137,7 +137,7 @@ export default function AdmeTechSection() {
             className="text-balance text-4xl font-medium leading-[1.03] tracking-[-0.045em] md:text-6xl lg:text-7xl"
           >
             When the solution needs
-            <span className="block text-[#d97706]">a physical world.</span>
+            <span className="block text-[#d88900]">a physical world.</span>
           </motion.h2>
 
           <motion.p

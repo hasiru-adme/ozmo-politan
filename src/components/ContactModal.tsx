@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   motion,
   AnimatePresence,
@@ -12,10 +12,6 @@ import {
   type Variants,
 } from "framer-motion";
 import { X, Send } from "lucide-react";
-
-/* ------------------------------------------------------------------ */
-/* ANIMATION VARIANTS                                                  */
-/* ------------------------------------------------------------------ */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -34,21 +30,19 @@ const item: Variants = {
   },
 };
 
-/* ------------------------------------------------------------------ */
-/* FLOATING LABEL FIELD                                                */
-/* ------------------------------------------------------------------ */
+/* ---------------- FLOATING LABEL FIELD ---------------- */
 
 const fieldBase =
-  "peer w-full rounded-xl border border-line bg-neutral-50/80 px-3.5 pb-1.5 pt-5 text-sm " +
+  "peer w-full rounded-xl border border-line bg-bg/80 px-3.5 pb-1.5 pt-5 text-sm text-ink " +
   "shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] outline-none transition-all duration-300 " +
   "placeholder-transparent focus:-translate-y-0.5 focus:border-accent focus:bg-white " +
   "focus:shadow-[0_10px_24px_-10px_rgba(243,181,27,0.55),inset_0_0_0_1px_rgba(243,181,27,0.4)]";
 
 const labelBase =
-  "pointer-events-none absolute left-3.5 top-1.5 text-[10px] uppercase tracking-[0.08em] text-gray-400 " +
+  "pointer-events-none absolute left-3.5 top-1.5 text-xs uppercase tracking-[0.08em] text-muted " +
   "transition-all duration-200 " +
   "peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal " +
-  "peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-[0.08em] peer-focus:text-neutral-700";
+  "peer-focus:top-1.5 peer-focus:text-xs peer-focus:uppercase peer-focus:tracking-[0.08em] peer-focus:text-ink";
 
 function Field({
   label,
@@ -59,6 +53,7 @@ function Field({
   maxLength,
   textarea,
   rows = 4,
+  autoComplete,
 }: {
   label: string;
   value: string;
@@ -68,11 +63,14 @@ function Field({
   maxLength?: number;
   textarea?: boolean;
   rows?: number;
+  autoComplete?: string;
 }) {
+  const id = useId();
   return (
     <motion.div variants={item} className="relative">
       {textarea ? (
         <textarea
+          id={id}
           placeholder=" "
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -83,8 +81,10 @@ function Field({
         />
       ) : (
         <input
+          id={id}
           type={type}
           placeholder=" "
+          autoComplete={autoComplete}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
@@ -92,36 +92,47 @@ function Field({
           className={fieldBase}
         />
       )}
-      <label className={labelBase}>{label}</label>
+      <label htmlFor={id} className={labelBase}>
+        {label}
+      </label>
     </motion.div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* MODAL                                                               */
-/* ------------------------------------------------------------------ */
+/* ---------------- MODAL ---------------- */
 
 export default function ContactModal({
   open,
   onClose,
+  initialMessage = "",
 }: {
   open: boolean;
   onClose: () => void;
+  initialMessage?: string;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
-  const [hpField, setHpField] = useState(""); // honeypot — stays empty for real users
+  const [hpField, setHpField] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   const reduceMotion = useReducedMotion();
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-  /* ---------- 3D tilt (follows the mouse) ---------- */
-  const mx = useMotionValue(0); // -0.5 .. 0.5
+  /* ---------- prefill message when opened from a package ---------- */
+  useEffect(() => {
+    if (open && initialMessage) {
+      setMessage(initialMessage);
+    }
+  }, [open, initialMessage]);
+
+  /* ---------- 3D tilt ---------- */
+  const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const gx = useMotionValue(50); // glare position in %
+  const gx = useMotionValue(50);
   const gy = useMotionValue(30);
 
   const sx = useSpring(mx, { stiffness: 150, damping: 18, mass: 0.6 });
@@ -150,7 +161,7 @@ export default function ContactModal({
     gy.set(30);
   }
 
-  /* ---------- body scroll lock + Escape to close ---------- */
+  /* ---------- scroll lock + Escape + initial focus ---------- */
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -159,13 +170,15 @@ export default function ContactModal({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
+    const focusTimer = setTimeout(() => closeRef.current?.focus(), 150);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
+      clearTimeout(focusTimer);
     };
   }, [open, onClose]);
 
-  /* ---------- reset state after the close animation ---------- */
+  /* ---------- reset status after close animation ---------- */
   useEffect(() => {
     if (open) return;
     const t = setTimeout(() => {
@@ -201,7 +214,7 @@ export default function ContactModal({
       setPhone("");
       setMessage("");
     } catch {
-      setErrorMsg("Network error — please try again");
+      setErrorMsg("Network error. Please try again.");
       setStatus("error");
     }
   }
@@ -219,9 +232,9 @@ export default function ContactModal({
           onClick={onClose}
         >
           {/* BACKDROP */}
-          <div className="absolute inset-0 bg-black/55 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-charcoal/60 backdrop-blur-md" />
 
-          {/* FLOATING GLOW ORBS (depth behind the card) */}
+          {/* GLOW ORBS */}
           <motion.div
             aria-hidden
             className="pointer-events-none absolute left-[12%] top-[18%] h-[260px] w-[260px] rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.45),transparent_70%)] blur-2xl"
@@ -235,8 +248,11 @@ export default function ContactModal({
             transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* ENTRY ANIMATION WRAPPER */}
+          {/* ENTRY WRAPPER */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             className="relative w-full max-w-md"
             style={{ transformPerspective: 1100 }}
             initial={{ opacity: 0, y: 50, rotateX: -20, scale: 0.9 }}
@@ -255,7 +271,7 @@ export default function ContactModal({
                 transformStyle: "preserve-3d",
                 transformPerspective: 1100,
               }}
-              className="relative rounded-3xl border border-white/70 bg-gradient-to-b from-white to-neutral-50 p-7 shadow-[0_2px_0_rgba(255,255,255,0.9)_inset,0_30px_60px_-15px_rgba(0,0,0,0.45),0_12px_24px_-12px_rgba(0,0,0,0.25)]"
+              className="relative rounded-3xl border border-white/70 bg-gradient-to-b from-white to-bg p-7 shadow-[0_2px_0_rgba(255,255,255,0.9)_inset,0_30px_60px_-15px_rgba(0,0,0,0.45),0_12px_24px_-12px_rgba(0,0,0,0.25)]"
             >
               {/* GLARE */}
               <motion.div
@@ -266,13 +282,15 @@ export default function ContactModal({
 
               {/* CLOSE */}
               <motion.button
+                ref={closeRef}
+                type="button"
                 onClick={onClose}
                 aria-label="Close"
                 whileHover={{ rotate: 90, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 style={{ transform: "translateZ(30px)" }}
-                className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full text-gray-400 transition-colors hover:bg-neutral-100 hover:text-gray-700"
+                className="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
               >
                 <X size={18} />
               </motion.button>
@@ -293,16 +311,15 @@ export default function ContactModal({
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.1 }}
                       style={{ transform: "translateZ(50px)" }}
-                      className="relative mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-sage-light text-sage-dark shadow-[0_14px_28px_-8px_rgba(0,0,0,0.25)]"
+                      className="relative mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-green text-green-ink shadow-[0_14px_28px_-8px_rgba(0,0,0,0.25)]"
                     >
-                      {/* pulse ring */}
                       <motion.span
-                        className="absolute inset-0 rounded-full border-2 border-sage-dark/40"
+                        className="absolute inset-0 rounded-full border-2 border-green-ink/40"
                         initial={{ scale: 1, opacity: 0.8 }}
                         animate={{ scale: 1.6, opacity: 0 }}
                         transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }}
                       />
-                      <svg viewBox="0 0 52 52" className="h-12 w-12">
+                      <svg viewBox="0 0 52 52" className="h-12 w-12" aria-hidden>
                         <motion.circle
                           cx="26"
                           cy="26"
@@ -332,27 +349,29 @@ export default function ContactModal({
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5, duration: 0.5, ease: EASE }}
-                      className="mb-2 text-xl font-semibold"
+                      className="mb-2 text-xl font-semibold text-ink"
                     >
                       Message sent
                     </motion.h3>
                     <motion.p
+                      role="status"
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6, duration: 0.5, ease: EASE }}
-                      className="text-sm text-gray-500"
+                      className="text-sm text-muted"
                     >
-                      We&apos;ll get back to you within one business day.
+                      Thanks, we&apos;ve received your message. We&apos;ll reply as soon as we can.
                     </motion.p>
 
                     <motion.button
+                      type="button"
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7, duration: 0.5, ease: EASE }}
                       whileHover={{ y: -2 }}
                       whileTap={{ y: 2, scale: 0.97 }}
                       onClick={onClose}
-                      className="mt-6 rounded-full bg-black px-6 py-2.5 text-sm font-medium text-white shadow-[0_6px_0_#2a2a2a,0_12px_20px_rgba(0,0,0,0.25)]"
+                      className="mt-6 rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-white shadow-[0_6px_0_#3a3834,0_12px_20px_rgba(0,0,0,0.25)]"
                     >
                       Close
                     </motion.button>
@@ -374,7 +393,7 @@ export default function ContactModal({
                       <motion.div
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-                        className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-neutral-900 shadow-[0_6px_0_#c28f0c,0_16px_24px_-6px_rgba(243,181,27,0.55)]"
+                        className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-ink shadow-[0_6px_0_#c28f0c,0_16px_24px_-6px_rgba(243,181,27,0.55)]"
                       >
                         <Send size={20} strokeWidth={2} />
                       </motion.div>
@@ -386,11 +405,11 @@ export default function ContactModal({
                       transition={{ delay: 0.15, duration: 0.5, ease: EASE }}
                       style={{ transform: "translateZ(25px)" }}
                     >
-                      <h3 className="mb-1 text-xl font-semibold">
+                      <h3 id={titleId} className="mb-1 text-xl font-semibold text-ink">
                         Let&apos;s talk about your business
                       </h3>
-                      <p className="mb-6 text-sm text-gray-500">
-                        Tell us what&apos;s slowing you down — no pressure, no tech jargon.
+                      <p className="mb-6 text-sm text-muted">
+                        Tell us what&apos;s slowing you down. No pressure, no tech jargon.
                       </p>
                     </motion.div>
 
@@ -401,7 +420,7 @@ export default function ContactModal({
                       animate="show"
                       className="flex flex-col gap-3"
                     >
-                      {/* Honeypot — hidden from real users, not a common autofill-triggering name */}
+                      {/* Honeypot */}
                       <div
                         aria-hidden="true"
                         style={{
@@ -422,9 +441,9 @@ export default function ContactModal({
                         />
                       </div>
 
-                      <Field label="Your name" value={name} onChange={setName} required maxLength={100} />
-                      <Field label="Email" type="email" value={email} onChange={setEmail} required maxLength={150} />
-                      <Field label="Phone (optional)" type="tel" value={phone} onChange={setPhone} maxLength={30} />
+                      <Field label="Your name" value={name} onChange={setName} required maxLength={100} autoComplete="name" />
+                      <Field label="Email" type="email" value={email} onChange={setEmail} required maxLength={150} autoComplete="email" />
+                      <Field label="Phone (optional)" type="tel" value={phone} onChange={setPhone} maxLength={30} autoComplete="tel" />
                       <Field
                         label="What's slowing your business down?"
                         value={message}
@@ -435,23 +454,28 @@ export default function ContactModal({
                         rows={4}
                       />
 
-                      {/* ERROR (shakes when it appears) */}
+                      {/* ERROR */}
                       <AnimatePresence>
                         {status === "error" && (
                           <motion.p
                             key={errorMsg}
+                            role="alert"
                             initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto", x: [0, -8, 8, -6, 6, 0] }}
+                            animate={{
+                              opacity: 1,
+                              height: "auto",
+                              x: reduceMotion ? 0 : [0, -8, 8, -6, 6, 0],
+                            }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="text-sm text-red-500"
+                            className="text-sm text-red-ink"
                           >
                             {errorMsg}
                           </motion.p>
                         )}
                       </AnimatePresence>
 
-                      {/* SUBMIT (3D press button) */}
+                      {/* SUBMIT */}
                       <motion.button
                         variants={item}
                         type="submit"
@@ -471,9 +495,8 @@ export default function ContactModal({
                             : { y: 4, boxShadow: "0 2px 0 #c28f0c, 0 6px 12px -4px rgba(243,181,27,0.5)" }
                         }
                         style={{ boxShadow: "0 6px 0 #c28f0c, 0 12px 22px -6px rgba(243,181,27,0.5)" }}
-                        className="relative mt-2 overflow-hidden rounded-full bg-accent py-3 text-sm font-bold text-neutral-900 disabled:opacity-70"
+                        className="relative mt-2 overflow-hidden rounded-full bg-accent py-3 text-sm font-bold text-ink disabled:opacity-70"
                       >
-                        {/* shimmer while loading */}
                         {status === "loading" && (
                           <motion.span
                             aria-hidden
@@ -486,6 +509,14 @@ export default function ContactModal({
                           {status === "loading" ? "Sending..." : "Send message"}
                         </span>
                       </motion.button>
+
+                      <motion.p variants={item} className="text-center text-xs text-muted">
+                        By sending this you agree to our{" "}
+                        <a href="/privacy" className="underline hover:text-ink">
+                          Privacy Policy
+                        </a>
+                        .
+                      </motion.p>
                     </motion.form>
                   </motion.div>
                 )}

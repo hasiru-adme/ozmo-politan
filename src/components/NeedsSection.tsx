@@ -8,6 +8,7 @@ import {
 } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check } from "lucide-react";
+import Loop from "./Loop";
 
 const needs = [
   {
@@ -32,11 +33,11 @@ const needs = [
   },
 ];
 
-const AUTOPLAY_MS = 3200; // hama card ekakama thiyena welawa
+const AUTOPLAY_MS = 3200; // හැම card එකකම highlight වෙන වෙලාව
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /* --------------------------------
-   BLOCK REVEAL
+   BLOCK REVEAL (once: true)
 -------------------------------- */
 
 function Reveal({
@@ -52,7 +53,7 @@ function Reveal({
   const inView = useInView(ref, {
     amount: 0.15,
     margin: "0px 0px -80px 0px",
-    once: false,
+    once: true,
   });
 
   return (
@@ -65,7 +66,7 @@ function Reveal({
           ? { opacity: 1, y: 0, scale: 1 }
           : { opacity: 0, y: 40, scale: 0.97 }
       }
-      transition={{ duration: 0.8, delay: inView ? delay : 0, ease }}
+      transition={{ duration: 0.8, delay, ease }}
     >
       {children}
     </motion.div>
@@ -73,7 +74,7 @@ function Reveal({
 }
 
 /* --------------------------------
-   WORD BY WORD TEXT
+   WORD BY WORD TEXT (blur filter අයින් කළා, once: true)
 -------------------------------- */
 
 function AnimatedWords({
@@ -88,7 +89,7 @@ function AnimatedWords({
   stagger?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4, once: false });
+  const inView = useInView(ref, { amount: 0.4, once: true });
   const words = children.split(" ");
 
   return (
@@ -97,15 +98,11 @@ function AnimatedWords({
         <motion.span
           key={`${word}-${index}`}
           className="mr-[0.22em] inline-block"
-          initial={{ opacity: 0, y: 22, filter: "blur(7px)" }}
-          animate={
-            inView
-              ? { opacity: 1, y: 0, filter: "blur(0px)" }
-              : { opacity: 0, y: 22, filter: "blur(7px)" }
-          }
+          initial={{ opacity: 0, y: 22 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
           transition={{
             duration: 0.65,
-            delay: inView ? delay + index * stagger : 0,
+            delay: delay + index * stagger,
             ease,
           }}
         >
@@ -126,7 +123,7 @@ function CardText({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.5, once: false });
+  const inView = useInView(ref, { amount: 0.5, once: true });
   const words = children.split(" ");
 
   return (
@@ -137,7 +134,7 @@ function CardText({
           className="mr-[0.2em] inline-block"
           initial={{ opacity: 0, y: 10 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-          transition={{ duration: 0.4, delay: inView ? delay + index * 0.025 : 0, ease }}
+          transition={{ duration: 0.4, delay: delay + index * 0.025, ease }}
         >
           {word}
         </motion.span>
@@ -148,7 +145,7 @@ function CardText({
 
 /* --------------------------------
    NEED CARD
-   on = selected nathnam autoplay eken highlight wela inna card eka
+   on = selected නැත්නම් autoplay එකෙන් highlight වෙලා ඉන්න card එක
 -------------------------------- */
 
 function NeedCard({
@@ -201,35 +198,28 @@ function NeedCard({
           : "border-neutral-200 bg-[#fafaf8] hover:border-neutral-900 hover:bg-neutral-900 hover:text-white hover:shadow-[0_30px_70px_rgba(0,0,0,0.16)]"
       }`}
     >
-      {/* autoplay: moving yellow aurora, active card athule hemin sanchalanaya wenawa */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent blur-3xl"
-        animate={
-          on
-            ? { opacity: 0.28, x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }
-            : { opacity: 0 }
-        }
-        transition={
-          on
-            ? { duration: 5, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 0.6 }
-        }
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-accent blur-3xl"
-        animate={
-          on
-            ? { opacity: 0.16, x: [0, 40, 0], y: [0, -40, 0] }
-            : { opacity: 0 }
-        }
-        transition={
-          on
-            ? { duration: 6.5, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 0.6 }
-        }
-      />
+      {/* autoplay aurora: card එක "on" වෙලා ඉන්නකොට විතරයි mount වෙන්නේ.
+          blur-3xl වෙනුවට radial-gradient, screen එකෙන් පිටත loop නවතිනවා */}
+      {on && (
+        <>
+          <Loop
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.55),transparent_68%)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5, x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.2, 1] }}
+            rest={{ opacity: 0.5, x: 0, y: 0, scale: 1 }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <Loop
+            aria-hidden
+            className="pointer-events-none absolute -bottom-28 -left-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.4),transparent_68%)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.35, x: [0, 40, 0], y: [0, -40, 0] }}
+            rest={{ opacity: 0.35, x: 0, y: 0 }}
+            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
 
       {/* cursor follow spotlight */}
       <motion.div
@@ -237,27 +227,28 @@ function NeedCard({
         style={{ background: spotlight }}
       />
 
-      {/* shimmer sweep: autoplay card eka active wenakota ekak yanawa */}
+      {/* shimmer sweep: active වෙනකොට එක පාරක් යනවා (left වෙනුවට transform) */}
       {isActive && !isSelected && (
         <motion.span
-          className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-          initial={{ left: "-40%" }}
-          animate={{ left: "140%" }}
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+          initial={{ x: "-150%" }}
+          animate={{ x: "450%" }}
           transition={{ duration: 1.3, ease: "easeInOut", delay: 0.2 }}
         />
       )}
       <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-all duration-[1100ms] ease-out group-hover:left-[130%] group-hover:opacity-100" />
 
-      {/* selected pulse ring */}
+      {/* selected pulse ring: screen එකෙන් පිටත ගියාම නවතිනවා */}
       {isSelected && (
-        <motion.span
+        <Loop
           className="pointer-events-none absolute inset-0 rounded-[28px] border-2 border-accent"
           animate={{ opacity: [0.7, 0], scale: [1, 1.05] }}
+          rest={{ opacity: 0, scale: 1 }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
         />
       )}
 
-      {/* top line: selected = full, autoplay = timer ekak widiyata fill wenawa */}
+      {/* top line: selected = full, autoplay = timer එකක් විදියට fill වෙනවා */}
       <div className="absolute left-0 right-0 top-0 h-[3px] overflow-hidden">
         {isSelected ? (
           <motion.div
@@ -296,7 +287,7 @@ function NeedCard({
 
         <CardText
           delay={0.18}
-          className={`mt-6 max-w-[250px] text-[13px] md:text-[15px] leading-[1.65] transition-colors duration-500 ${
+          className={`mt-6 max-w-[250px] text-[13px] leading-[1.65] transition-colors duration-500 md:text-[15px] ${
             on ? "text-neutral-400" : "text-neutral-500 group-hover:text-neutral-400"
           }`}
         >
@@ -334,7 +325,7 @@ function NeedCard({
               on ? "text-white" : "text-neutral-700 group-hover:text-white"
             }`}
           >
-            {isSelected ? "Let's solve this" : "Explore solution"}
+            {isSelected ? "Let\u2019s solve this" : "Explore solution"}
           </motion.span>
 
           <motion.span
@@ -351,7 +342,11 @@ function NeedCard({
             ) : (
               <ArrowUpRight
                 size={16}
-                className={on ? "text-neutral-900" : "text-neutral-700 group-hover:text-neutral-900"}
+                className={
+                  on
+                    ? "text-neutral-900"
+                    : "text-neutral-700 group-hover:text-neutral-900"
+                }
               />
             )}
           </motion.span>
@@ -367,13 +362,13 @@ function NeedCard({
 
 export default function NeedsSection() {
   const [selected, setSelected] = useState<string | null>(null);
-  const [active, setActive] = useState(0); // autoplay eken highlight wena card eka
+  const [active, setActive] = useState(0); // autoplay එකෙන් highlight වෙන card එක
   const [paused, setPaused] = useState(false);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const gridInView = useInView(gridRef, { amount: 0.3 });
 
-  // auto play: card 4 eka eka highlight wenawa. hover / select karoth pause wenawa
+  // autoplay: card 4 එකින් එක highlight වෙනවා. hover / select කළොත් pause වෙනවා
   const running = gridInView && !paused && selected === null;
 
   useEffect(() => {
@@ -389,41 +384,25 @@ export default function NeedsSection() {
       id="needs"
       className="relative overflow-hidden bg-white px-[5vw] py-[100px] md:px-[6vw] md:py-[140px]"
     >
-      {/* floating ambient blobs */}
+      {/* floating ambient blobs: blur-[110px] වෙනුවට radial-gradient, screen එකේ ඉන්නකොට විතරක් loop වෙනවා */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
+        <Loop
+          className="absolute -right-24 top-10 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.14),transparent_68%)]"
           animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
+          rest={{ y: 0, x: 0 }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-24 top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.08] blur-[110px]"
         />
-        <motion.div
+        <Loop
+          className="absolute -left-24 bottom-10 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.1),transparent_68%)]"
           animate={{ y: [0, 25, 0], x: [0, -15, 0] }}
+          rest={{ y: 0, x: 0 }}
           transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -left-24 bottom-10 h-[300px] w-[300px] rounded-full bg-accent/[0.06] blur-[100px]"
         />
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1500px]">
         {/* ================= HEADER ================= */}
         <Reveal>
-          {/* <div className="mb-5 flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
-            <motion.span
-              initial={{ width: 0 }}
-              whileInView={{ width: 20 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.6, ease }}
-              className="block h-[2px] bg-accent"
-            />
-            <motion.span
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.5, delay: 0.15, ease }}
-            >
-              Start with your problem
-            </motion.span>
-          </div> */}
-
           <div className="max-w-[900px]">
             <AnimatedWords
               delay={0.1}
@@ -436,7 +415,7 @@ export default function NeedsSection() {
             <AnimatedWords
               delay={0.42}
               stagger={0.07}
-              className="text-[clamp(40px,5vw,72px)] font-normal leading-[0.98] tracking-[-0.04em] text-[#a57950]"
+              className="text-[clamp(40px,5vw,72px)] font-normal leading-[0.98] tracking-[-0.04em] text-[#d88900]"
             >
               need right now?
             </AnimatedWords>
@@ -446,7 +425,7 @@ export default function NeedsSection() {
               stagger={0.025}
               className="mt-7 max-w-[560px] text-[14px] leading-[1.7] text-neutral-500 md:text-[18px]"
             >
-              You don't need to understand the technology. Just tell us what is making your business harder. We'll help you find the right solution.
+              You don&apos;t need to understand the technology. Just tell us what is making your business harder. We&apos;ll help you find the right solution.
             </AnimatedWords>
           </div>
         </Reveal>
@@ -515,12 +494,12 @@ export default function NeedsSection() {
                   stagger={0.02}
                   className="mt-2 max-w-[650px] text-[14px] leading-[1.6] text-neutral-600"
                 >
-                  Tell us more about this challenge and we'll map out the right digital solution for your business.
+                  Tell us more about this challenge and we&apos;ll map out the right digital solution for your business.
                 </AnimatedWords>
               </div>
 
               <a
-                href="#contact"
+                href="#start"
                 className="group inline-flex shrink-0 items-center gap-3 text-[14px] font-bold uppercase tracking-[0.12em] text-neutral-900"
               >
                 Continue

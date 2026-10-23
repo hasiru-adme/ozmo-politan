@@ -15,9 +15,10 @@ import {
   RotateCcw,
 } from "lucide-react";
 import PlanDownload from "./PlanDownload";
+import Loop from "./Loop";
 
 /* ---------------------------------
-   STEPS (hama step ekakatama podi "challenge" ekak)
+   STEPS (හැම step එකකටම පොඩි "challenge" එකක්)
 ---------------------------------- */
 
 const steps = [
@@ -75,7 +76,7 @@ const XP_PER_STEP = 20;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /* ---------------------------------
-   WORD BY WORD TEXT ANIMATION
+   WORD BY WORD TEXT (blur filter අයින් කළා, once: true)
 ---------------------------------- */
 
 function AnimatedWords({
@@ -92,7 +93,7 @@ function AnimatedWords({
   stagger?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.25, once: false });
+  const inView = useInView(ref, { amount: 0.25, once: true });
   const words = text.split(" ");
 
   return (
@@ -101,13 +102,9 @@ function AnimatedWords({
         <motion.span
           key={`${word}-${index}`}
           className="mr-[0.25em] inline-block"
-          initial={{ opacity: 0, y: 18, filter: "blur(5px)" }}
-          animate={
-            inView
-              ? { opacity: 1, y: 0, filter: "blur(0px)" }
-              : { opacity: 0, y: 18, filter: "blur(5px)" }
-          }
-          transition={{ duration, delay: inView ? delay + index * stagger : 0, ease }}
+          initial={{ opacity: 0, y: 18 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+          transition={{ duration, delay: delay + index * stagger, ease }}
         >
           {word}
         </motion.span>
@@ -129,7 +126,7 @@ function Reveal({
   const inView = useInView(ref, {
     amount: 0.15,
     margin: "0px 0px -80px 0px",
-    once: false,
+    once: true,
   });
 
   return (
@@ -138,7 +135,7 @@ function Reveal({
       className={className}
       initial={{ opacity: 0, y: 25 }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 25 }}
-      transition={{ duration: 0.7, delay: inView ? delay : 0, ease }}
+      transition={{ duration: 0.7, delay, ease }}
     >
       {children}
     </motion.div>
@@ -151,13 +148,15 @@ function Reveal({
 
 export default function HowSection() {
   const [current, setCurrent] = useState(0);
-  const [choices, setChoices] = useState<(string | null)[]>(Array(steps.length).fill(null));
+  const [choices, setChoices] = useState<(string | null)[]>(
+    Array(steps.length).fill(null)
+  );
   const [showResult, setShowResult] = useState(false);
-  const [burst, setBurst] = useState(0); // "+20 XP" animation eka trigger karanna
+  const [burst, setBurst] = useState(0); // "+20 XP" animation එක trigger කරන්න
 
   const completed = choices.filter(Boolean).length;
   const firstOpen = choices.findIndex((c) => !c);
-  const unlocked = firstOpen === -1 ? steps.length - 1 : firstOpen; // dan select karanna puluwan wadima step eka
+  const unlocked = firstOpen === -1 ? steps.length - 1 : firstOpen; // දැන් select කරන්න පුළුවන් වැඩිම step එක
   const xp = completed * XP_PER_STEP;
   const maxXp = steps.length * XP_PER_STEP;
   const step = steps[current];
@@ -186,35 +185,15 @@ export default function HowSection() {
       id="how"
       className="relative overflow-hidden bg-bg px-[5vw] py-[90px] md:px-[6vw] md:py-[130px]"
     >
-      {/* Ambient glow */}
+      {/* Ambient glow: static (animate නෑ), blur-[130px] වෙනුවට radial-gradient */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[12%] h-[320px] w-[520px] -translate-x-1/2 rounded-full bg-accent/[0.05] blur-[130px]" />
+        <div className="absolute left-1/2 top-[12%] h-[420px] w-[640px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(243,181,27,0.1),transparent_68%)]" />
       </div>
 
       <div className="relative mx-auto flex max-w-[900px] flex-col items-center text-center">
         {/* =========================
             HEADER (center)
         ========================== */}
-        {/* <Reveal>
-          <div className="mb-6 flex items-center justify-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500">
-            <motion.span
-              initial={{ width: 0 }}
-              whileInView={{ width: 20 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.5, ease }}
-              className="block h-[2px] bg-accent"
-            />
-            <span>How we work</span>
-            <motion.span
-              initial={{ width: 0 }}
-              whileInView={{ width: 20 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.5, delay: 0.15, ease }}
-              className="block h-[2px] bg-accent"
-            />
-          </div>
-        </Reveal> */}
-
         <AnimatedWords
           text="From problem to progress."
           delay={0.05}
@@ -237,7 +216,7 @@ export default function HowSection() {
         <Reveal delay={0.1} className="mt-14 w-full md:mt-16">
           {/* XP bar */}
           <div className="mx-auto mb-14 w-full max-w-[420px]">
-            <div className="mb-2 flex items-center justify-between text-[10px] md:text-[12px] font-bold uppercase tracking-[0.13em] text-gray-500">
+            <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.13em] text-gray-500 md:text-[12px]">
               <span>
                 Step {Math.min(current + 1, steps.length)} of {steps.length}
               </span>
@@ -269,20 +248,22 @@ export default function HowSection() {
 
           {/* Path */}
           <div className="relative mx-auto w-full max-w-[820px]">
-            {/* player token (node eken node ekata spring ekakin yanawa) */}
+            {/* player token (node එකෙන් node එකට spring එකකින් යනවා) */}
             <div className="pointer-events-none absolute inset-x-0 -top-10 h-8">
               <motion.div
                 className="absolute top-0 -translate-x-1/2"
                 animate={{ left: `${((current + 0.5) / steps.length) * 100}%` }}
                 transition={{ type: "spring", stiffness: 140, damping: 16 }}
               >
-                <motion.div
+                {/* bounce: screen එකේ ඉන්නකොට විතරක් loop වෙනවා */}
+                <Loop
                   animate={{ y: [0, -5, 0] }}
+                  rest={{ y: 0 }}
                   transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
                   className="grid h-8 w-8 place-items-center rounded-full bg-accent shadow-[0_8px_20px_rgba(243,181,27,0.4)]"
                 >
                   <Rocket size={15} />
-                </motion.div>
+                </Loop>
               </motion.div>
             </div>
 
@@ -290,7 +271,9 @@ export default function HowSection() {
             <div className="pointer-events-none absolute left-[8.333%] right-[8.333%] top-[22px] h-px bg-[#d8d8d2] md:top-[28px]" />
             <motion.div
               className="pointer-events-none absolute left-[8.333%] right-[8.333%] top-[22px] h-[2px] origin-left bg-accent md:top-[28px]"
-              animate={{ scaleX: Math.min(completed, steps.length - 1) / (steps.length - 1) }}
+              animate={{
+                scaleX: Math.min(completed, steps.length - 1) / (steps.length - 1),
+              }}
               transition={{ duration: 0.7, ease }}
             />
 
@@ -316,19 +299,22 @@ export default function HowSection() {
                       whileHover={locked ? undefined : { scale: 1.1, rotate: 4 }}
                       whileTap={locked ? undefined : { scale: 0.95 }}
                       animate={isCurrent ? { scale: 1.12 } : { scale: 1 }}
-                      className={`relative z-10 grid h-11 w-11 place-items-center rounded-full border transition-colors duration-300 md:h-14 md:w-14 ${done
+                      className={`relative z-10 grid h-11 w-11 place-items-center rounded-full border transition-colors duration-300 md:h-14 md:w-14 ${
+                        done
                           ? "border-accent bg-accent"
                           : isCurrent
-                            ? "border-[#ead89e] bg-[#fff9e7] shadow-[0_8px_30px_rgba(243,181,27,0.25)]"
-                            : locked
-                              ? "border-[#e2e2dd] bg-white/60 text-gray-300"
-                              : "border-[#d7d7d2] bg-white"
-                        }`}
+                          ? "border-[#ead89e] bg-[#fff9e7] shadow-[0_8px_30px_rgba(243,181,27,0.25)]"
+                          : locked
+                          ? "border-[#e2e2dd] bg-white/60 text-gray-300"
+                          : "border-[#d7d7d2] bg-white"
+                      }`}
                     >
+                      {/* current step pulse ring: screen එකේ ඉන්නකොට විතරක් loop වෙනවා */}
                       {isCurrent && !done && (
-                        <motion.span
+                        <Loop
                           className="absolute inset-0 rounded-full border border-accent"
                           animate={{ scale: [1, 1.5], opacity: [0.7, 0] }}
+                          rest={{ scale: 1, opacity: 0 }}
                           transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
                         />
                       )}
@@ -341,8 +327,13 @@ export default function HowSection() {
                       )}
                     </motion.span>
                     <span
-                      className={`text-[10px] font-semibold md:text-xs ${locked ? "text-gray-300" : isCurrent ? "text-gray-900" : "text-gray-500"
-                        }`}
+                      className={`text-[10px] font-semibold md:text-xs ${
+                        locked
+                          ? "text-gray-300"
+                          : isCurrent
+                          ? "text-gray-900"
+                          : "text-gray-500"
+                      }`}
                     >
                       {title}
                     </span>
@@ -365,15 +356,22 @@ export default function HowSection() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -16, scale: 0.98 }}
                 transition={{ duration: 0.45, ease }}
-                className="rounded-3xl border border-white/70 bg-white/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl md:p-8"
+                // backdrop-blur-xl අයින් කළා, bg-white/60 → bg-white/85 (පෙනුම සමානයි)
+                className="rounded-3xl border border-white/70 bg-white/85 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] md:p-8"
               >
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-accent">
                   Step {step.number}
                 </div>
-                <h3 className="text-2xl font-semibold tracking-[-0.03em] md:text-3xl">{step.title}</h3>
-                <p className="mx-auto mt-2 max-w-[360px] text-[13px] md:text-[15px] leading-[1.6] text-gray-500">{step.text}</p>
+                <h3 className="text-2xl font-semibold tracking-[-0.03em] md:text-3xl">
+                  {step.title}
+                </h3>
+                <p className="mx-auto mt-2 max-w-[360px] text-[13px] leading-[1.6] text-gray-500 md:text-[15px]">
+                  {step.text}
+                </p>
 
-                <div className="mt-6 text-xs font-semibold text-gray-800">{step.question}</div>
+                <div className="mt-6 text-xs font-semibold text-gray-800">
+                  {step.question}
+                </div>
 
                 <div className="mt-3 flex flex-wrap justify-center gap-2.5">
                   {step.options.map((opt) => {
@@ -385,10 +383,11 @@ export default function HowSection() {
                         onClick={() => pick(opt)}
                         whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.96 }}
-                        className={`rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors duration-300 ${selected
+                        className={`rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors duration-300 ${
+                          selected
                             ? "border-accent bg-accent text-black shadow-[0_8px_20px_rgba(243,181,27,0.25)]"
                             : "border-black/10 bg-white/70 text-gray-700 hover:border-accent/60"
-                          }`}
+                        }`}
                       >
                         {opt}
                       </motion.button>
@@ -410,7 +409,10 @@ export default function HowSection() {
                       className="group mx-auto mt-7 inline-flex items-center gap-3 rounded-full bg-black px-6 py-3.5 text-xs font-bold text-white shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
                     >
                       {current < steps.length - 1 ? "Next step" : "See your system"}
-                      <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+                      <ArrowRight
+                        size={15}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
                     </motion.button>
                   )}
                 </AnimatePresence>
@@ -422,7 +424,7 @@ export default function HowSection() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5, ease }}
-                className="relative rounded-3xl border border-white/70 bg-white/60 p-7 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl md:p-9"
+                className="relative rounded-3xl border border-white/70 bg-white/85 p-7 shadow-[0_20px_60px_rgba(0,0,0,0.08)] md:p-9"
               >
                 {/* confetti burst */}
                 <div className="pointer-events-none absolute left-1/2 top-12">
@@ -454,7 +456,9 @@ export default function HowSection() {
                   <Check size={26} />
                 </motion.span>
 
-                <div className="mt-5 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">The result</div>
+                <div className="mt-5 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                  The result
+                </div>
                 <h3 className="mt-2 text-[clamp(24px,3vw,34px)] font-semibold leading-[1.1] tracking-[-0.03em]">
                   One connected system, built around your business.
                 </h3>
@@ -472,6 +476,7 @@ export default function HowSection() {
                     </motion.span>
                   ))}
                 </div>
+
                 <PlanDownload
                   answers={steps.map((s, i) => ({
                     step: s.title,
@@ -479,13 +484,17 @@ export default function HowSection() {
                     choice: choices[i] ?? "",
                   }))}
                 />
+
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                   <a
-                    href="#contact"
+                    href="#start"
                     className="group inline-flex items-center gap-3 rounded-full bg-black px-6 py-3.5 text-xs font-bold text-white shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5"
                   >
                     Let&apos;s build it
-                    <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    <ArrowRight
+                      size={15}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
                   </a>
                   <button
                     type="button"

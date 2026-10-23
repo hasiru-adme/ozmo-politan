@@ -221,7 +221,7 @@ export default function ModelSection() {
             delay={0.18}
             stagger={0.055}
             duration={0.55}
-            className="mt-1 text-[clamp(34px,4.5vw,62px)] font-normal leading-[1.02] tracking-[-0.045em] text-[#a57950]"
+            className="mt-1 text-[clamp(34px,4.5vw,62px)] font-normal leading-[1.02] tracking-[-0.045em] text-[#d88900]"
           />
 
           {/* Description */}
@@ -236,7 +236,7 @@ export default function ModelSection() {
           {/* CTA */}
           <Reveal delay={0.3}>
             <motion.a
-              href="#contact"
+              href="#start"
               whileHover={{
                 y: -3,
               }}

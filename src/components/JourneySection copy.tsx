@@ -351,7 +351,7 @@ export default function JourneySection() {
             </p>
 
             <motion.a
-              href="#needs"
+              href="#solutions"
               whileHover={{
                 y: -3,
               }}
